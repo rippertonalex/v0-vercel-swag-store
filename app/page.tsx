@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Hero } from "@/components/hero";
 import { PromoBanner } from "@/components/promo-banner";
 import { FeaturedProducts } from "@/components/featured-products";
+import { AiAssistant } from "@/components/ai-assistant";
 import { getCachedProducts, getCachedCategories } from "@/lib/api-server";
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function HomePage() {
     <>
       <PromoBanner />
       <Hero />
+      <AiAssistant />
       <FeaturedProducts />
     </>
   );

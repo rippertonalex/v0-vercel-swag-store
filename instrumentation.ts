@@ -4,18 +4,35 @@ export async function onRequestError() {
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
-    const { getProducts, getCategories, getActivePromotion } = await import(
-      "@/lib/api"
-    );
+    const {
+      getCachedProducts,
+      getCachedFeaturedProducts,
+      getCachedCategories,
+      getCachedActivePromotion,
+      getCachedProduct,
+    } = await import("@/lib/api-server");
 
-    // Fire all cache-warming requests in parallel on server boot
-    Promise.all([
-      getProducts({ limit: 20 }),
-      getProducts({ featured: true, limit: 6 }),
-      getCategories(),
-      getActivePromotion(),
-    ]).catch(() => {
-      // Silently handle — cache warming is best-effort
-    });
+    try {
+      const [allProducts, , categories] = await Promise.all([
+        getCachedProducts({ limit: 100 }),
+        getCachedFeaturedProducts(),
+        getCachedCategories(),
+        getCachedActivePromotion(),
+      ]);
+
+      await Promise.all([
+        // Pre-warm all category filter results
+        ...categories.map((cat) =>
+          getCachedProducts({ category: cat.slug, limit: 20 }),
+        ),
+        // Pre-warm individual product caches by both slug and ID
+        ...allProducts.data.flatMap((p) => [
+          getCachedProduct(p.slug),
+          getCachedProduct(p.id),
+        ]),
+      ]);
+    } catch {
+      // Best-effort cache warming — don't block server start
+    }
   }
 }
