@@ -160,13 +160,33 @@ export async function getActivePromotion(): Promise<Promotion> {
 // --- Cart APIs ---
 
 export async function createCart(): Promise<{ cart: Cart; token: string }> {
-  const res = await fetch(`${API_BASE}/cart/create`, {
-    method: "POST",
-    headers: headers(),
-  });
-  const token = res.headers.get("x-cart-token") || "";
-  const body: ApiResponse<Cart> = await res.json();
-  return { cart: body.data, token };
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 500 * attempt));
+
+    const res = await fetch(`${API_BASE}/cart/create`, {
+      method: "POST",
+      headers: {
+        ...headers(),
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      lastError = new Error(`Cart create failed with status ${res.status}`);
+      continue;
+    }
+
+    const body: ApiResponse<Cart> = await res.json();
+    const token = res.headers.get("x-cart-token") || body.data?.token || "";
+    if (token) {
+      return { cart: body.data, token };
+    }
+    lastError = new Error("Cart created but no token in response");
+  }
+
+  throw lastError ?? new Error("Failed to create cart after retries");
 }
 
 export async function getCart(cartToken: string): Promise<Cart> {

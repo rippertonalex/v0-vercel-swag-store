@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CartProvider } from "@/lib/cart-context";
@@ -53,7 +52,6 @@ export default function RootLayout({
             </div>
           </CartProvider>
         </Suspense>
-        <Analytics />
       </body>
     </html>
   );
