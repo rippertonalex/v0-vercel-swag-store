@@ -1,4 +1,5 @@
-import { getCachedProducts, type Product, type PaginationMeta } from "@/lib/api-server";
+import { getCachedProducts } from "@/lib/api-server";
+import type { Product, PaginationMeta } from "@/lib/api";
 import { ProductCard } from "@/components/product-card";
 import { PackageOpen } from "lucide-react";
 

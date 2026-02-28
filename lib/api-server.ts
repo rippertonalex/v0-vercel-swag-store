@@ -1,19 +1,11 @@
-"use cache";
-
 import { unstable_cacheLife as cacheLife } from "next/cache";
 import {
-  getProducts as _getProducts,
-  getFeaturedProducts as _getFeaturedProducts,
-  getProduct as _getProduct,
-  getCategories as _getCategories,
-  getActivePromotion as _getActivePromotion,
-  type Product,
-  type Category,
-  type Promotion,
-  type PaginationMeta,
+  getProducts,
+  getFeaturedProducts,
+  getProduct,
+  getCategories,
+  getActivePromotion,
 } from "@/lib/api";
-
-export type { Product, Category, Promotion, PaginationMeta };
 
 export async function getCachedProducts(params?: {
   page?: number;
@@ -21,27 +13,32 @@ export async function getCachedProducts(params?: {
   category?: string;
   search?: string;
   featured?: boolean;
-}): Promise<{ data: Product[]; meta: { pagination: PaginationMeta } }> {
+}) {
+  "use cache";
   cacheLife("hours");
-  return _getProducts(params);
+  return getProducts(params);
 }
 
-export async function getCachedFeaturedProducts(): Promise<Product[]> {
+export async function getCachedFeaturedProducts() {
+  "use cache";
   cacheLife("days");
-  return _getFeaturedProducts();
+  return getFeaturedProducts();
 }
 
-export async function getCachedProduct(idOrSlug: string): Promise<Product> {
+export async function getCachedProduct(idOrSlug: string) {
+  "use cache";
   cacheLife("hours");
-  return _getProduct(idOrSlug);
+  return getProduct(idOrSlug);
 }
 
-export async function getCachedCategories(): Promise<Category[]> {
+export async function getCachedCategories() {
+  "use cache";
   cacheLife("days");
-  return _getCategories();
+  return getCategories();
 }
 
-export async function getCachedActivePromotion(): Promise<Promotion> {
+export async function getCachedActivePromotion() {
+  "use cache";
   cacheLife("hours");
-  return _getActivePromotion();
+  return getActivePromotion();
 }
