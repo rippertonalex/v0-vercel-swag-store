@@ -15,8 +15,7 @@ export function SiteFooter() {
             <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />
           </svg>
           <span>
-            {"\u00A9"} {new Date().getFullYear()} Vercel Swag Store. All rights
-            reserved.
+            {"\u00A9"} 2026 Vercel Swag Store. All rights reserved.
           </span>
         </div>
         <nav className="flex items-center gap-4" aria-label="Footer navigation">
