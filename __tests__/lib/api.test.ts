@@ -1,9 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 
 vi.stubEnv("API_BASE_URL", "https://vercel-swag-store-api.vercel.app/api");
 vi.stubEnv("VERCEL_PROTECTION_BYPASS_TOKEN", "test-bypass-token");
 
-const { formatPrice, getProducts, getProduct, getProductStock } = await import("@/lib/api");
+let formatPrice: typeof import("@/lib/api").formatPrice;
+let getProducts: typeof import("@/lib/api").getProducts;
+let getProduct: typeof import("@/lib/api").getProduct;
+let getProductStock: typeof import("@/lib/api").getProductStock;
+
+beforeAll(async () => {
+  const api = await import("@/lib/api");
+  formatPrice = api.formatPrice;
+  getProducts = api.getProducts;
+  getProduct = api.getProduct;
+  getProductStock = api.getProductStock;
+});
 
 const MOCK_PRODUCT = {
   id: "tshirt_001",
