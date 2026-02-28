@@ -91,17 +91,6 @@ export function AiAssistant() {
                       }
                       return null;
                     })}
-                    {message.parts.length === 0 && message.content && (
-                      <span
-                        className="whitespace-pre-wrap [&_a]:font-medium [&_a]:underline"
-                        dangerouslySetInnerHTML={{
-                          __html: message.content.replace(
-                            /\[([^\]]+)\]\(([^)]+)\)/g,
-                            '<a href="$2">$1</a>',
-                          ),
-                        }}
-                      />
-                    )}
                   </div>
                 </div>
               ))}
