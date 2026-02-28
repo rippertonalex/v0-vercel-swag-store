@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/api";
+import { CartSuggestions } from "@/components/cart-suggestions";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -123,6 +124,8 @@ export function CartSheet({
                 ))}
               </div>
             </ScrollArea>
+
+            <CartSuggestions onNavigate={() => onOpenChange(false)} />
 
             <Separator />
 
