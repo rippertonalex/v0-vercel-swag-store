@@ -38,9 +38,13 @@ export function AddToCartForm({
   const outOfStock = stock != null && !stock.inStock;
 
   async function handleAddToCart() {
-    await addToCart(productId, quantity);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    try {
+      await addToCart(productId, quantity);
+      setAdded(true);
+      setTimeout(() => setAdded(false), 2000);
+    } catch {
+      // Error toast is handled by CartProvider
+    }
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Category } from "@/lib/api";
+import { useSearchPending } from "@/components/search-pending";
 import {
   Select,
   SelectContent,
@@ -13,6 +14,7 @@ import {
 export function CategoryFilter({ categories }: { categories: Category[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { startTransition } = useSearchPending();
   const currentCategory = searchParams.get("category") ?? "all";
 
   function handleChange(value: string) {
@@ -23,7 +25,9 @@ export function CategoryFilter({ categories }: { categories: Category[] }) {
       params.set("category", value);
     }
     params.delete("page");
-    router.push(`/search?${params.toString()}`);
+    startTransition(() => {
+      router.replace(`/search?${params.toString()}`);
+    });
   }
 
   return (

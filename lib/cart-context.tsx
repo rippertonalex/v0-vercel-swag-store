@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import useSWR from "swr";
+import { toast } from "sonner";
 import type { Cart } from "@/lib/api";
 import {
   addItemToCart,
@@ -28,7 +29,9 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | null>(null);
 
 const fetcher = (url: string) =>
-  fetch(url).then((res) => res.json()).then((data) => data.cart as Cart | null);
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => data.cart as Cart | null);
 
 export function useCart() {
   const ctx = useContext(CartContext);
@@ -40,80 +43,93 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  const { data: cart, isValidating, mutate } = useSWR(
-    mounted ? "/api/cart" : null,
-    fetcher,
-    { revalidateOnFocus: false }
-  );
+  const {
+    data: cart,
+    isValidating,
+    mutate,
+  } = useSWR(mounted ? "/api/cart" : null, fetcher, {
+    revalidateOnFocus: false,
+  });
 
   const addToCart = useCallback(
     async (productId: string, quantity: number = 1) => {
-      const currentCart = cart ?? null;
-      // Optimistic update
-      if (currentCart) {
+      const previousCart = cart ?? null;
+      if (previousCart) {
         mutate(
-          {
-            ...currentCart,
-            totalItems: currentCart.totalItems + quantity,
-          },
-          false
+          { ...previousCart, totalItems: previousCart.totalItems + quantity },
+          false,
         );
       }
-      await addItemToCart(productId, quantity);
-      mutate();
+      try {
+        await addItemToCart(productId, quantity);
+        mutate();
+      } catch {
+        mutate(previousCart, false);
+        toast.error("Unable to add item to cart. Please try again.");
+      }
     },
-    [cart, mutate]
+    [cart, mutate],
   );
 
   const updateQuantity = useCallback(
     async (itemId: string, quantity: number) => {
-      const currentCart = cart ?? null;
-      if (currentCart) {
-        const item = currentCart.items.find((i) => i.productId === itemId);
+      const previousCart = cart ?? null;
+      if (previousCart) {
+        const item = previousCart.items.find((i) => i.productId === itemId);
         if (item) {
           const diff = quantity - item.quantity;
           mutate(
             {
-              ...currentCart,
-              totalItems: currentCart.totalItems + diff,
-              items: currentCart.items.map((i) =>
+              ...previousCart,
+              totalItems: previousCart.totalItems + diff,
+              items: previousCart.items.map((i) =>
                 i.productId === itemId
                   ? { ...i, quantity, lineTotal: i.product.price * quantity }
-                  : i
+                  : i,
               ),
-              subtotal: currentCart.subtotal + diff * item.product.price,
+              subtotal: previousCart.subtotal + diff * item.product.price,
             },
-            false
+            false,
           );
         }
       }
-      await updateItemQuantity(itemId, quantity);
-      mutate();
+      try {
+        await updateItemQuantity(itemId, quantity);
+        mutate();
+      } catch {
+        mutate(previousCart, false);
+        toast.error("Unable to update quantity. Please try again.");
+      }
     },
-    [cart, mutate]
+    [cart, mutate],
   );
 
   const removeFromCart = useCallback(
     async (itemId: string) => {
-      const currentCart = cart ?? null;
-      if (currentCart) {
-        const item = currentCart.items.find((i) => i.productId === itemId);
+      const previousCart = cart ?? null;
+      if (previousCart) {
+        const item = previousCart.items.find((i) => i.productId === itemId);
         if (item) {
           mutate(
             {
-              ...currentCart,
-              totalItems: currentCart.totalItems - item.quantity,
-              items: currentCart.items.filter((i) => i.productId !== itemId),
-              subtotal: currentCart.subtotal - item.lineTotal,
+              ...previousCart,
+              totalItems: previousCart.totalItems - item.quantity,
+              items: previousCart.items.filter((i) => i.productId !== itemId),
+              subtotal: previousCart.subtotal - item.lineTotal,
             },
-            false
+            false,
           );
         }
       }
-      await removeItem(itemId);
-      mutate();
+      try {
+        await removeItem(itemId);
+        mutate();
+      } catch {
+        mutate(previousCart, false);
+        toast.error("Unable to remove item. Please try again.");
+      }
     },
-    [cart, mutate]
+    [cart, mutate],
   );
 
   return (

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { formatPrice, type Product } from "@/lib/api";
 
@@ -9,12 +10,13 @@ export function ProductCard({ product, priority = false }: { product: Product; p
     >
       <div className="relative aspect-square overflow-hidden bg-secondary">
         {product.images[0] && (
-          <img
+          <Image
             src={product.images[0]}
             alt={product.name}
-            loading={priority ? "eager" : "lazy"}
-            decoding="async"
-            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            priority={priority}
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         )}
       </div>

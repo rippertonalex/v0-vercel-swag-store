@@ -1,5 +1,5 @@
-const API_BASE = "https://vercel-swag-store-api.vercel.app/api";
-const BYPASS_TOKEN = "OykROcuULI6YJwAwk3VnWv4gMMbpAq6q";
+const API_BASE = process.env.API_BASE_URL!;
+const BYPASS_TOKEN = process.env.VERCEL_PROTECTION_BYPASS_TOKEN!;
 
 // --- Types ---
 

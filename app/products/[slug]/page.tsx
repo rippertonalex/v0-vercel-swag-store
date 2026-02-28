@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getCachedProduct } from "@/lib/api-server";
@@ -60,12 +61,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
         {/* Product Image */}
         <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-secondary">
           {product.images[0] && (
-            <img
+            <Image
               src={product.images[0]}
               alt={product.name}
-              loading="eager"
-              decoding="async"
-              className="size-full object-cover"
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              priority
+              className="object-cover"
             />
           )}
         </div>
