@@ -35,7 +35,7 @@ export function AddToCartForm({
   );
 
   const maxQuantity = stock?.stock ?? 0;
-  const outOfStock = stock !== null && !stock.inStock;
+  const outOfStock = stock != null && !stock.inStock;
 
   async function handleAddToCart() {
     await addToCart(productId, quantity);
@@ -78,7 +78,7 @@ export function AddToCartForm({
         size="lg"
         className="w-full"
         onClick={handleAddToCart}
-        disabled={outOfStock || isPending || stock === null}
+        disabled={outOfStock || isPending || stock == null}
       >
         {isPending ? (
           <>
