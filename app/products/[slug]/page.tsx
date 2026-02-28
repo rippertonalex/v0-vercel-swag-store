@@ -9,6 +9,8 @@ import { StockIndicator } from "@/components/stock-indicator";
 import { AddToCartForm } from "@/components/add-to-cart-form";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { SimilarProducts } from "@/components/similar-products";
+import { TrackProductView } from "@/components/track-product-view";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -56,6 +58,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <TrackProductView slug={product.slug} name={product.name} />
       <Link
         href="/search"
         className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -116,6 +119,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
           )}
         </div>
       </div>
+
+      <SimilarProducts product={product} />
     </div>
   );
 }

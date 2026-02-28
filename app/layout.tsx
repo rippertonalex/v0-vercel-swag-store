@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CartProvider } from "@/lib/cart-context";
+import { BrowsingHistoryProvider } from "@/lib/browsing-history";
 import "./globals.css";
 
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
@@ -46,14 +47,16 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased">
         <Suspense>
-          <CartProvider>
-            <div className="flex min-h-svh flex-col">
-              <SiteHeader />
-              <main className="flex-1">{children}</main>
-              <SiteFooter />
-            </div>
-            <Toaster position="bottom-right" />
-          </CartProvider>
+          <BrowsingHistoryProvider>
+            <CartProvider>
+              <div className="flex min-h-svh flex-col">
+                <SiteHeader />
+                <main className="flex-1">{children}</main>
+                <SiteFooter />
+              </div>
+              <Toaster position="bottom-right" />
+            </CartProvider>
+          </BrowsingHistoryProvider>
         </Suspense>
         <Analytics />
       </body>
