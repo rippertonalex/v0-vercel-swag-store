@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import { getActivePromotion } from "@/lib/api";
+import { getCachedActivePromotion } from "@/lib/api-server";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tag } from "lucide-react";
 
 async function PromoBannerContent() {
-  const promo = await getActivePromotion();
+  const promo = await getCachedActivePromotion();
 
   return (
     <div className="bg-foreground text-background">

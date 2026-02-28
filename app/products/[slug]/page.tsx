@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { getProduct, formatPrice } from "@/lib/api";
+import { getCachedProduct } from "@/lib/api-server";
+import { formatPrice } from "@/lib/api";
 import { StockIndicator } from "@/components/stock-indicator";
 import { AddToCartForm } from "@/components/add-to-cart-form";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +19,7 @@ export async function generateMetadata({
   const { slug } = await params;
 
   try {
-    const product = await getProduct(slug);
+    const product = await getCachedProduct(slug);
     return {
       title: product.name,
       description: product.description,
@@ -40,7 +41,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   let product;
   try {
-    product = await getProduct(slug);
+    product = await getCachedProduct(slug);
   } catch {
     notFound();
   }

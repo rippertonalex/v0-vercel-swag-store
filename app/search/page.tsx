@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { getCategories } from "@/lib/api";
+import { getCachedCategories } from "@/lib/api-server";
 import { SearchInput } from "@/components/search-input";
 import { CategoryFilter } from "@/components/category-filter";
 import { SearchResults } from "@/components/search-results";
@@ -38,7 +38,7 @@ function SearchResultsSkeleton() {
 }
 
 async function CategoriesFilter() {
-  const categories = await getCategories();
+  const categories = await getCachedCategories();
   return <CategoryFilter categories={categories} />;
 }
 

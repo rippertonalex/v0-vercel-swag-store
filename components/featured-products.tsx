@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import { getFeaturedProducts } from "@/lib/api";
+import { getCachedFeaturedProducts } from "@/lib/api-server";
 import { ProductCard } from "@/components/product-card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 async function FeaturedProductsContent() {
-  const products = await getFeaturedProducts();
+  const products = await getCachedFeaturedProducts();
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

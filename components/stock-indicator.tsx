@@ -1,32 +1,27 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { getProductStock, type StockInfo } from "@/lib/api";
+import useSWR from "swr";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface StockInfo {
+  productId: string;
+  stock: number;
+  inStock: boolean;
+  lowStock: boolean;
+}
+
+const fetcher = (url: string) =>
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => data.stock as StockInfo | null);
+
 export function StockIndicator({ productSlug }: { productSlug: string }) {
-  const [stock, setStock] = useState<StockInfo | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchStock = useCallback(async () => {
-    try {
-      const data = await getProductStock(productSlug);
-      setStock(data);
-    } catch {
-      setStock(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [productSlug]);
-
-  useEffect(() => {
-    fetchStock();
-
-    // Refresh stock every 30 seconds
-    const interval = setInterval(fetchStock, 30000);
-    return () => clearInterval(interval);
-  }, [fetchStock]);
+  const { data: stock, isLoading: loading } = useSWR<StockInfo | null>(
+    `/api/stock/${productSlug}`,
+    fetcher,
+    { refreshInterval: 30000 }
+  );
 
   if (loading) {
     return <Skeleton className="h-6 w-24" />;

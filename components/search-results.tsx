@@ -1,4 +1,4 @@
-import { getProducts, type Product, type PaginationMeta } from "@/lib/api";
+import { getCachedProducts, type Product, type PaginationMeta } from "@/lib/api-server";
 import { ProductCard } from "@/components/product-card";
 import { PackageOpen } from "lucide-react";
 
@@ -13,7 +13,7 @@ export async function SearchResults({
   let pagination: PaginationMeta | null = null;
 
   try {
-    const res = await getProducts({
+    const res = await getCachedProducts({
       search: query || undefined,
       category: category || undefined,
       limit: query ? 5 : 20,

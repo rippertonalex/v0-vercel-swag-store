@@ -1,10 +1,22 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import { Minus, Plus, ShoppingBag, Loader2 } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
-import { getProductStock, type StockInfo } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+
+interface StockInfo {
+  productId: string;
+  stock: number;
+  inStock: boolean;
+  lowStock: boolean;
+}
+
+const fetcher = (url: string) =>
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => data.stock as StockInfo | null);
 
 export function AddToCartForm({
   productId,
@@ -15,21 +27,12 @@ export function AddToCartForm({
 }) {
   const { addToCart, isPending } = useCart();
   const [quantity, setQuantity] = useState(1);
-  const [stock, setStock] = useState<StockInfo | null>(null);
   const [added, setAdded] = useState(false);
 
-  const fetchStock = useCallback(async () => {
-    try {
-      const data = await getProductStock(productSlug);
-      setStock(data);
-    } catch {
-      setStock(null);
-    }
-  }, [productSlug]);
-
-  useEffect(() => {
-    fetchStock();
-  }, [fetchStock]);
+  const { data: stock } = useSWR<StockInfo | null>(
+    `/api/stock/${productSlug}`,
+    fetcher
+  );
 
   const maxQuantity = stock?.stock ?? 0;
   const outOfStock = stock !== null && !stock.inStock;
