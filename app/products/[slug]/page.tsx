@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { getCachedProduct } from "@/lib/api-server";
+import { getCachedProduct, getCachedProducts } from "@/lib/api-server";
 import { formatPrice } from "@/lib/api";
 import { StockIndicator } from "@/components/stock-indicator";
 import { AddToCartForm } from "@/components/add-to-cart-form";
@@ -12,6 +12,13 @@ import { Separator } from "@/components/ui/separator";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const { data } = await getCachedProducts({ limit: 100 });
+  // Pre-warm ID-based cache entries so cart lookups (by ID) are also instant
+  data.forEach((p) => void getCachedProduct(p.id));
+  return data.map((product) => ({ slug: product.slug }));
 }
 
 export async function generateMetadata({
