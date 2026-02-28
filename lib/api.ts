@@ -1,3 +1,5 @@
+import { unstable_cacheLife as cacheLife } from "next/cache";
+
 const API_BASE = "https://vercel-swag-store-api.vercel.app/api";
 const BYPASS_TOKEN = "OykROcuULI6YJwAwk3VnWv4gMMbpAq6q";
 
@@ -115,6 +117,8 @@ export async function getProducts(params?: {
   search?: string;
   featured?: boolean;
 }): Promise<{ data: Product[]; meta: { pagination: PaginationMeta } }> {
+  "use cache";
+  cacheLife("hours");
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.set("page", String(params.page));
   if (params?.limit) searchParams.set("limit", String(params.limit));
@@ -129,11 +133,15 @@ export async function getProducts(params?: {
 }
 
 export async function getFeaturedProducts(): Promise<Product[]> {
+  "use cache";
+  cacheLife("days");
   const res = await getProducts({ featured: true, limit: 6 });
   return res.data;
 }
 
 export async function getProduct(idOrSlug: string): Promise<Product> {
+  "use cache";
+  cacheLife("hours");
   const res = await apiFetch<Product>(`/products/${idOrSlug}`);
   return res.data;
 }
@@ -146,6 +154,8 @@ export async function getProductStock(idOrSlug: string): Promise<StockInfo> {
 // --- Category APIs ---
 
 export async function getCategories(): Promise<Category[]> {
+  "use cache";
+  cacheLife("days");
   const res = await apiFetch<Category[]>("/categories");
   return res.data;
 }
@@ -153,6 +163,8 @@ export async function getCategories(): Promise<Category[]> {
 // --- Promotion APIs ---
 
 export async function getActivePromotion(): Promise<Promotion> {
+  "use cache";
+  cacheLife("hours");
   const res = await apiFetch<Promotion>("/promotions");
   return res.data;
 }

@@ -20,7 +20,7 @@ function SearchResultsSkeleton() {
     <div>
       <Skeleton className="mb-4 h-5 w-48" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
+        {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
             className="flex flex-col overflow-hidden rounded-lg border border-border"
@@ -37,15 +37,18 @@ function SearchResultsSkeleton() {
   );
 }
 
+async function CategoriesFilter() {
+  const categories = await getCategories();
+  return <CategoryFilter categories={categories} />;
+}
+
 export default async function SearchPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; category?: string }>;
 }) {
   const { q, category } = await searchParams;
-  const categories = await getCategories();
 
-  // Create a unique key based on search params so Suspense re-triggers
   const searchKey = `${q ?? ""}-${category ?? ""}`;
 
   return (
@@ -63,7 +66,9 @@ export default async function SearchPage({
         <div className="flex-1">
           <SearchInput />
         </div>
-        <CategoryFilter categories={categories} />
+        <Suspense fallback={<Skeleton className="h-10 w-full sm:w-48" />}>
+          <CategoriesFilter />
+        </Suspense>
       </div>
 
       <Suspense key={searchKey} fallback={<SearchResultsSkeleton />}>

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
@@ -47,12 +46,12 @@ export function CartSheet({
                   <div key={item.productId} className="flex gap-3">
                     <div className="relative size-20 shrink-0 overflow-hidden rounded-md border border-border bg-secondary">
                       {item.product.images[0] && (
-                        <Image
+                        <img
                           src={item.product.images[0]}
                           alt={item.product.name}
-                          fill
-                          className="object-cover"
-                          sizes="80px"
+                          loading="lazy"
+                          decoding="async"
+                          className="size-full object-cover"
                         />
                       )}
                     </div>

@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getProduct, formatPrice } from "@/lib/api";
@@ -8,8 +7,6 @@ import { StockIndicator } from "@/components/stock-indicator";
 import { AddToCartForm } from "@/components/add-to-cart-form";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-
-export const dynamic = "force-dynamic";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -62,13 +59,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
         {/* Product Image */}
         <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-secondary">
           {product.images[0] && (
-            <Image
+            <img
               src={product.images[0]}
               alt={product.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              priority
+              loading="eager"
+              decoding="async"
+              className="size-full object-cover"
             />
           )}
         </div>
