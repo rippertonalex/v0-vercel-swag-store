@@ -164,11 +164,16 @@ export async function createCart(): Promise<{ cart: Cart; token: string }> {
     method: "POST",
     headers: headers(),
   });
-  const body: ApiResponse<Cart> = await res.json();
+  const text = await res.text();
+  console.log("[v0] createCart status:", res.status);
+  console.log("[v0] createCart headers:", JSON.stringify(Object.fromEntries(res.headers.entries())));
+  console.log("[v0] createCart body:", text);
+  const body = JSON.parse(text) as ApiResponse<Cart>;
   // Token comes from response header or the response body (cart.token)
   const token = res.headers.get("x-cart-token") || body.data?.token || "";
+  console.log("[v0] createCart token:", token);
   if (!token) {
-    throw new Error("Failed to create cart: no token returned");
+    throw new Error("Failed to create cart: no token returned. Response: " + text);
   }
   return { cart: body.data, token };
 }
