@@ -1,15 +1,10 @@
 "use server";
 
 import { cookies } from "next/headers";
-import {
-  createCart,
-  addToCart as apiAddToCart,
-  updateCartItem as apiUpdateCartItem,
-  removeCartItem as apiRemoveCartItem,
-  type Cart,
-} from "@/lib/api";
+import type { Cart } from "@/lib/api";
+import { buildCartFromEntries, type CartEntry } from "@/lib/cart-utils";
 
-const CART_TOKEN_KEY = "cart-token";
+const CART_COOKIE = "cart-items";
 
 const COOKIE_OPTS = {
   httpOnly: true,
@@ -19,40 +14,64 @@ const COOKIE_OPTS = {
   path: "/",
 };
 
-async function getCartToken(): Promise<string | null> {
+async function readEntries(): Promise<CartEntry[]> {
   const cookieStore = await cookies();
-  return cookieStore.get(CART_TOKEN_KEY)?.value ?? null;
+  const raw = cookieStore.get(CART_COOKIE)?.value;
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
 }
 
-async function ensureCartToken(): Promise<string> {
-  const existing = await getCartToken();
-  if (existing) return existing;
-
-  const { token } = await createCart();
-  if (!token) throw new Error("Failed to create cart: no token returned");
-
+async function writeEntries(entries: CartEntry[]): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.set(CART_TOKEN_KEY, token, COOKIE_OPTS);
-  return token;
+  cookieStore.set(CART_COOKIE, JSON.stringify(entries), COOKIE_OPTS);
 }
 
 export async function addItemToCart(
   productId: string,
-  quantity: number = 1
+  quantity: number = 1,
 ): Promise<Cart> {
-  const token = await ensureCartToken();
-  return apiAddToCart(token, productId, quantity);
+  const entries = await readEntries();
+  const existing = entries.find((e) => e.productId === productId);
+
+  if (existing) {
+    existing.quantity += quantity;
+  } else {
+    entries.push({
+      productId,
+      quantity,
+      addedAt: new Date().toISOString(),
+    });
+  }
+
+  await writeEntries(entries);
+  return buildCartFromEntries(entries);
 }
 
 export async function updateItemQuantity(
   itemId: string,
-  quantity: number
+  quantity: number,
 ): Promise<Cart> {
-  const token = await ensureCartToken();
-  return apiUpdateCartItem(token, itemId, quantity);
+  let entries = await readEntries();
+
+  if (quantity <= 0) {
+    entries = entries.filter((e) => e.productId !== itemId);
+  } else {
+    const existing = entries.find((e) => e.productId === itemId);
+    if (existing) {
+      existing.quantity = quantity;
+    }
+  }
+
+  await writeEntries(entries);
+  return buildCartFromEntries(entries);
 }
 
 export async function removeItem(itemId: string): Promise<Cart> {
-  const token = await ensureCartToken();
-  return apiRemoveCartItem(token, itemId);
+  const entries = (await readEntries()).filter((e) => e.productId !== itemId);
+  await writeEntries(entries);
+  return buildCartFromEntries(entries);
 }

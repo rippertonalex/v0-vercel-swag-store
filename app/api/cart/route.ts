@@ -1,20 +1,27 @@
 import { cookies } from "next/headers";
-import { getCart } from "@/lib/api";
+import { buildCartFromEntries, type CartEntry } from "@/lib/cart-utils";
 
-const CART_TOKEN_KEY = "cart-token";
+const CART_COOKIE = "cart-items";
 
 export async function GET() {
   const cookieStore = await cookies();
-  const token = cookieStore.get(CART_TOKEN_KEY)?.value;
+  const raw = cookieStore.get(CART_COOKIE)?.value;
 
-  if (!token) {
+  if (!raw) {
     return Response.json({ cart: null });
   }
 
+  let entries: CartEntry[];
   try {
-    const cart = await getCart(token);
-    return Response.json({ cart });
+    entries = JSON.parse(raw);
   } catch {
     return Response.json({ cart: null });
   }
+
+  if (entries.length === 0) {
+    return Response.json({ cart: null });
+  }
+
+  const cart = await buildCartFromEntries(entries);
+  return Response.json({ cart });
 }
