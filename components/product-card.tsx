@@ -1,0 +1,32 @@
+import Image from "next/image";
+import Link from "next/link";
+import { formatPrice, type Product } from "@/lib/api";
+
+export function ProductCard({ product }: { product: Product }) {
+  return (
+    <Link
+      href={`/products/${product.slug}`}
+      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-foreground/20"
+    >
+      <div className="relative aspect-square overflow-hidden bg-secondary">
+        {product.images[0] && (
+          <Image
+            src={product.images[0]}
+            alt={product.name}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+        )}
+      </div>
+      <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
+        <h3 className="line-clamp-1 text-sm font-medium text-foreground">
+          {product.name}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {formatPrice(product.price, product.currency)}
+        </p>
+      </div>
+    </Link>
+  );
+}
