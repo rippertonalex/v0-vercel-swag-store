@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
@@ -43,13 +44,15 @@ export default function RootLayout({
         <meta name="generator" content="vswag-cert-v3" />
       </head>
       <body className="font-sans antialiased">
-        <CartProvider>
-          <div className="flex min-h-svh flex-col">
-            <SiteHeader />
-            <main className="flex-1">{children}</main>
-            <SiteFooter />
-          </div>
-        </CartProvider>
+        <Suspense>
+          <CartProvider>
+            <div className="flex min-h-svh flex-col">
+              <SiteHeader />
+              <main className="flex-1">{children}</main>
+              <SiteFooter />
+            </div>
+          </CartProvider>
+        </Suspense>
         <Analytics />
       </body>
     </html>
