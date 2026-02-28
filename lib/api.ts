@@ -164,8 +164,12 @@ export async function createCart(): Promise<{ cart: Cart; token: string }> {
     method: "POST",
     headers: headers(),
   });
-  const token = res.headers.get("x-cart-token") || "";
   const body: ApiResponse<Cart> = await res.json();
+  // Token comes from response header or the response body (cart.token)
+  const token = res.headers.get("x-cart-token") || body.data?.token || "";
+  if (!token) {
+    throw new Error("Failed to create cart: no token returned");
+  }
   return { cart: body.data, token };
 }
 
