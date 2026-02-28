@@ -4,6 +4,8 @@ import {
   createContext,
   useContext,
   useCallback,
+  useState,
+  useEffect,
   type ReactNode,
 } from "react";
 import useSWR from "swr";
@@ -35,9 +37,14 @@ export function useCart() {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const { data: cart, isValidating, mutate } = useSWR("/api/cart", fetcher, {
-    revalidateOnFocus: false,
-  });
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const { data: cart, isValidating, mutate } = useSWR(
+    mounted ? "/api/cart" : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
 
   const addToCart = useCallback(
     async (productId: string, quantity: number = 1) => {
