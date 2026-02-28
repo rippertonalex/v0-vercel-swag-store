@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { CartProviderWrapper } from "@/components/cart-provider-wrapper";
+import { CartProvider } from "@/lib/cart-context";
 import "./globals.css";
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -43,13 +43,13 @@ export default function RootLayout({
         <meta name="generator" content="vswag-cert-v3" />
       </head>
       <body className="font-sans antialiased">
-        <CartProviderWrapper>
+        <CartProvider>
           <div className="flex min-h-svh flex-col">
             <SiteHeader />
             <main className="flex-1">{children}</main>
             <SiteFooter />
           </div>
-        </CartProviderWrapper>
+        </CartProvider>
         <Analytics />
       </body>
     </html>

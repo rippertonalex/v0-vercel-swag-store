@@ -3,7 +3,6 @@
 import { cookies } from "next/headers";
 import {
   createCart,
-  getCart,
   addToCart as apiAddToCart,
   updateCartItem as apiUpdateCartItem,
   removeCartItem as apiRemoveCartItem,
@@ -29,18 +28,6 @@ async function getOrCreateCartToken(): Promise<string> {
   }
 
   return token;
-}
-
-export async function fetchCart(): Promise<Cart | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(CART_TOKEN_KEY)?.value;
-  if (!token) return null;
-
-  try {
-    return await getCart(token);
-  } catch {
-    return null;
-  }
 }
 
 export async function addItemToCart(

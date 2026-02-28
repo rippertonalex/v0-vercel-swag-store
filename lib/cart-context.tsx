@@ -3,11 +3,10 @@
 import {
   createContext,
   useContext,
-  useOptimistic,
-  useTransition,
   useCallback,
   type ReactNode,
 } from "react";
+import useSWR from "swr";
 import type { Cart } from "@/lib/api";
 import {
   addItemToCart,
@@ -26,104 +25,99 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
+const fetcher = (url: string) =>
+  fetch(url).then((res) => res.json()).then((data) => data.cart as Cart | null);
+
 export function useCart() {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error("useCart must be used within CartProvider");
   return ctx;
 }
 
-export function CartProvider({
-  children,
-  initialCart,
-}: {
-  children: ReactNode;
-  initialCart: Cart | null;
-}) {
-  const [isPending, startTransition] = useTransition();
-  const [optimisticCart, setOptimisticCart] = useOptimistic<Cart | null>(
-    initialCart
-  );
+export function CartProvider({ children }: { children: ReactNode }) {
+  const { data: cart, isValidating, mutate } = useSWR("/api/cart", fetcher, {
+    revalidateOnFocus: false,
+  });
 
   const addToCart = useCallback(
     async (productId: string, quantity: number = 1) => {
-      startTransition(async () => {
-        // Optimistic: increment totalItems
-        if (optimisticCart) {
-          setOptimisticCart({
-            ...optimisticCart,
-            totalItems: optimisticCart.totalItems + quantity,
-          });
-        }
-        await addItemToCart(productId, quantity);
-      });
+      const currentCart = cart ?? null;
+      // Optimistic update
+      if (currentCart) {
+        mutate(
+          {
+            ...currentCart,
+            totalItems: currentCart.totalItems + quantity,
+          },
+          false
+        );
+      }
+      await addItemToCart(productId, quantity);
+      mutate();
     },
-    [optimisticCart, setOptimisticCart]
+    [cart, mutate]
   );
 
   const updateQuantity = useCallback(
     async (itemId: string, quantity: number) => {
-      startTransition(async () => {
-        if (optimisticCart) {
-          const item = optimisticCart.items.find(
-            (i) => i.productId === itemId
-          );
-          if (item) {
-            const diff = quantity - item.quantity;
-            setOptimisticCart({
-              ...optimisticCart,
-              totalItems: optimisticCart.totalItems + diff,
-              items: optimisticCart.items.map((i) =>
+      const currentCart = cart ?? null;
+      if (currentCart) {
+        const item = currentCart.items.find((i) => i.productId === itemId);
+        if (item) {
+          const diff = quantity - item.quantity;
+          mutate(
+            {
+              ...currentCart,
+              totalItems: currentCart.totalItems + diff,
+              items: currentCart.items.map((i) =>
                 i.productId === itemId
-                  ? {
-                      ...i,
-                      quantity,
-                      lineTotal: i.product.price * quantity,
-                    }
+                  ? { ...i, quantity, lineTotal: i.product.price * quantity }
                   : i
               ),
-              subtotal: optimisticCart.subtotal + diff * item.product.price,
-            });
-          }
+              subtotal: currentCart.subtotal + diff * item.product.price,
+            },
+            false
+          );
         }
-        await updateItemQuantity(itemId, quantity);
-      });
+      }
+      await updateItemQuantity(itemId, quantity);
+      mutate();
     },
-    [optimisticCart, setOptimisticCart]
+    [cart, mutate]
   );
 
   const removeFromCart = useCallback(
     async (itemId: string) => {
-      startTransition(async () => {
-        if (optimisticCart) {
-          const item = optimisticCart.items.find(
-            (i) => i.productId === itemId
+      const currentCart = cart ?? null;
+      if (currentCart) {
+        const item = currentCart.items.find((i) => i.productId === itemId);
+        if (item) {
+          mutate(
+            {
+              ...currentCart,
+              totalItems: currentCart.totalItems - item.quantity,
+              items: currentCart.items.filter((i) => i.productId !== itemId),
+              subtotal: currentCart.subtotal - item.lineTotal,
+            },
+            false
           );
-          if (item) {
-            setOptimisticCart({
-              ...optimisticCart,
-              totalItems: optimisticCart.totalItems - item.quantity,
-              items: optimisticCart.items.filter(
-                (i) => i.productId !== itemId
-              ),
-              subtotal: optimisticCart.subtotal - item.lineTotal,
-            });
-          }
         }
-        await removeItem(itemId);
-      });
+      }
+      await removeItem(itemId);
+      mutate();
     },
-    [optimisticCart, setOptimisticCart]
+    [cart, mutate]
   );
 
   return (
     <CartContext.Provider
       value={{
-        cart: optimisticCart,
-        isPending,
+        cart: cart ?? null,
+        isPending: isValidating,
         addToCart,
         updateQuantity,
         removeFromCart,
-        totalItems: optimisticCart?.totalItems ?? 0,
+        totalItems: cart?.totalItems ?? 0,
       }}
     >
       {children}
