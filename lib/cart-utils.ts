@@ -1,6 +1,8 @@
 import { getCachedProduct } from "@/lib/api-server";
 import type { Cart, CartItemWithProduct } from "@/lib/api";
 
+export const CART_COOKIE = "cart-items";
+
 export interface CartEntry {
   productId: string;
   quantity: number;

@@ -1,15 +1,9 @@
 "use client";
 
 import useSWR from "swr";
+import type { StockInfo } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface StockInfo {
-  productId: string;
-  stock: number;
-  inStock: boolean;
-  lowStock: boolean;
-}
 
 const fetcher = (url: string) =>
   fetch(url)

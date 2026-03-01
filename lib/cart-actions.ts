@@ -2,9 +2,7 @@
 
 import { cookies } from "next/headers";
 import type { Cart } from "@/lib/api";
-import { buildCartFromEntries, type CartEntry } from "@/lib/cart-utils";
-
-const CART_COOKIE = "cart-items";
+import { CART_COOKIE, buildCartFromEntries, type CartEntry } from "@/lib/cart-utils";
 
 const COOKIE_OPTS = {
   httpOnly: true,
