@@ -67,7 +67,7 @@ export function CartSheet({
                           {item.product.name}
                         </Link>
                         <p className="text-sm text-muted-foreground">
-                          {formatPrice(item.product.price)}
+                          {formatPrice(item.product.price, item.product.currency)}
                         </p>
                       </div>
                       <div className="flex items-center justify-between">
@@ -105,7 +105,7 @@ export function CartSheet({
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-foreground">
-                            {formatPrice(item.lineTotal)}
+                            {formatPrice(item.lineTotal, item.product.currency)}
                           </span>
                           <Button
                             variant="ghost"
@@ -133,7 +133,7 @@ export function CartSheet({
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-foreground">Subtotal</span>
                 <span className="text-base font-semibold text-foreground">
-                  {formatPrice(cart?.subtotal ?? 0)}
+                  {formatPrice(cart?.subtotal ?? 0, cart?.currency)}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">

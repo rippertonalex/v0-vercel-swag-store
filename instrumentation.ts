@@ -2,6 +2,8 @@ export async function onRequestError() {
   // Required export — intentionally empty
 }
 
+// Runs once on server boot, before any user request.
+// Pre-warms the entire "use cache" layer so every first visit is a cache hit.
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     const {

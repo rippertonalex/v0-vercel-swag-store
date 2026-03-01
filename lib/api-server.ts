@@ -1,3 +1,5 @@
+// Caching layer — wraps raw API functions with "use cache" + cacheLife.
+// Same inputs = instant cache hit. First call populates, subsequent calls are ~0ms.
 import { cacheLife } from "next/cache";
 import {
   getProducts,

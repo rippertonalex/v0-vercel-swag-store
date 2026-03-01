@@ -88,7 +88,6 @@ function MessageContent({
 export function AiAssistant() {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const { messages, sendMessage, status } = useChat({ transport });
 
@@ -210,7 +209,6 @@ export function AiAssistant() {
               <Sparkles className="size-4" />
             </div>
             <input
-              ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}

@@ -7,15 +7,15 @@ import { formatPrice } from "@/lib/api";
 export const maxDuration = 15;
 
 export async function POST(req: Request) {
-  const {
-    cartItems,
-    viewedProducts,
-  }: {
-    cartItems: { name: string; category: string; quantity: number }[];
-    viewedProducts: { name: string; slug: string; durationSeconds: number }[];
-  } = await req.json();
+  let cartItems: { name: string; category: string; quantity: number }[];
+  let viewedProducts: { name: string; slug: string; durationSeconds: number }[];
+  try {
+    ({ cartItems, viewedProducts } = await req.json());
+  } catch {
+    return Response.json({ error: "Invalid request body" }, { status: 400 });
+  }
 
-  if (cartItems.length === 0) {
+  if (!cartItems || cartItems.length === 0) {
     return Response.json({ message: null, suggestions: [] });
   }
 

@@ -16,6 +16,7 @@ interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
+// Pre-renders all 28 product pages at build time — first visit is instant static HTML
 export async function generateStaticParams() {
   const { data } = await getCachedProducts({ limit: 100 });
   // Pre-warm ID-based cache entries so cart lookups (by ID) are also instant

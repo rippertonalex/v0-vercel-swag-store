@@ -9,6 +9,8 @@ export interface CartEntry {
   addedAt: string;
 }
 
+// Enriches raw cookie entries (just IDs + quantities) with full product data.
+// Uses cached product API so repeated reads are instant.
 export async function buildCartFromEntries(
   entries: CartEntry[],
 ): Promise<Cart> {

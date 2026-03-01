@@ -1,3 +1,5 @@
+// Stock is intentionally dynamic per spec — short edge cache (10s) reduces
+// redundant calls while staying real-time enough for inventory display.
 import { getProductStock } from "@/lib/api";
 
 export async function GET(

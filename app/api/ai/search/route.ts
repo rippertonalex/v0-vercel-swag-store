@@ -7,7 +7,12 @@ import { formatPrice } from "@/lib/api";
 export const maxDuration = 15;
 
 export async function POST(req: Request) {
-  const { query }: { query: string } = await req.json();
+  let query: string;
+  try {
+    ({ query } = await req.json());
+  } catch {
+    return Response.json({ error: "Invalid request body" }, { status: 400 });
+  }
 
   if (!query || query.trim().length < 2) {
     return Response.json({ productIds: [] });

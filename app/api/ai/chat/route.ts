@@ -9,6 +9,8 @@ import { formatPrice } from "@/lib/api";
 
 export const maxDuration = 30;
 
+// Injects full catalog (~2K tokens) into context — not RAG.
+// 28 products fits easily; vector DB would be over-engineering at this scale.
 async function buildProductCatalog(): Promise<string> {
   const { data: products } = await getCachedProducts({ limit: 100 });
 
@@ -24,7 +26,12 @@ async function buildProductCatalog(): Promise<string> {
 }
 
 export async function POST(req: Request) {
-  const { messages }: { messages: UIMessage[] } = await req.json();
+  let messages: UIMessage[];
+  try {
+    ({ messages } = await req.json());
+  } catch {
+    return Response.json({ error: "Invalid request body" }, { status: 400 });
+  }
 
   const catalog = await buildProductCatalog();
 

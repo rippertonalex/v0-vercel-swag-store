@@ -1,3 +1,5 @@
+// Server Actions — called from client components like RPC endpoints.
+// Cart uses cookies instead of external API because the API's Redis is down.
 "use server";
 
 import { cookies } from "next/headers";

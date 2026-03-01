@@ -51,6 +51,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     revalidateOnFocus: false,
   });
 
+  // Optimistic update pattern: update UI instantly, then call server.
+  // If server fails, rollback to previous state and show error toast.
   const addToCart = useCallback(
     async (productId: string, quantity: number = 1) => {
       const previousCart = cart ?? null;
