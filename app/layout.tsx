@@ -20,6 +20,10 @@ export const metadata: Metadata = {
   description:
     "Official Vercel merchandise. Premium developer apparel, accessories, and gear.",
   generator: "vswag-cert-v3",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/apple-icon.png",
+  },
   openGraph: {
     title: "Vercel Swag Store",
     description:
