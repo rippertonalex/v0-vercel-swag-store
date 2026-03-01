@@ -21,6 +21,10 @@ Thumbs.db
 # Vercel
 .vercel
 
+# Local notes
+AGENTS.md
+PRESENTATION_NOTES.md
+
 # v0 runtime files
 __v0_runtime_loader.js
 __v0_devtools.tsx
