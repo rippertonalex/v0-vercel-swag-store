@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Sparkles, Loader2, Eye, Plus } from "lucide-react";
+import { Sparkles, Loader2, Plus } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useBrowsingHistory } from "@/lib/browsing-history";
 import { formatPrice } from "@/lib/api";
@@ -27,7 +27,6 @@ interface Suggestion {
 interface CartSuggestionsData {
   message: string | null;
   suggestions: Suggestion[];
-  reminder: { slug: string; message: string } | null;
 }
 
 export function CartSuggestions({ onNavigate }: { onNavigate: () => void }) {
@@ -73,8 +72,11 @@ export function CartSuggestions({ onNavigate }: { onNavigate: () => void }) {
 
   async function handleAddSuggestion(productId: string) {
     setAddingId(productId);
-    await addToCart(productId, 1);
-    setAddingId(null);
+    try {
+      await addToCart(productId, 1);
+    } finally {
+      setAddingId(null);
+    }
   }
 
   if (items.length === 0) return null;
@@ -106,9 +108,6 @@ export function CartSuggestions({ onNavigate }: { onNavigate: () => void }) {
 
       {data.suggestions.length > 0 && (
         <div className="flex flex-col gap-2">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-            You might also like
-          </span>
           {data.suggestions.map((s) => (
             <div
               key={s.productId}
@@ -154,19 +153,6 @@ export function CartSuggestions({ onNavigate }: { onNavigate: () => void }) {
               </Button>
             </div>
           ))}
-        </div>
-      )}
-
-      {data.reminder && (
-        <div className="flex items-start gap-2 rounded-md bg-secondary px-2.5 py-2">
-          <Eye className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-          <Link
-            href={`/products/${data.reminder.slug}`}
-            onClick={onNavigate}
-            className="text-xs text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {data.reminder.message}
-          </Link>
         </div>
       )}
     </div>

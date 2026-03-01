@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   } = await req.json();
 
   if (cartItems.length === 0) {
-    return Response.json({ message: null, suggestions: [], reminder: null });
+    return Response.json({ message: null, suggestions: [] });
   }
 
   const { data: allProducts } = await getCachedProducts({ limit: 100 });
@@ -35,11 +35,14 @@ export async function POST(req: Request) {
     .map((i) => `${i.quantity}x ${i.name} (${i.category})`)
     .join(", ");
 
+  const browsedNotInCart = viewedProducts
+    .filter((v) => v.durationSeconds >= 5)
+    .slice(0, 3);
+
   const browsingContext =
-    viewedProducts.length > 0
-      ? `\n\nProducts the user recently browsed (with time spent):\n${viewedProducts
-          .slice(0, 10)
-          .map((p) => `- ${p.name} (viewed for ${p.durationSeconds}s)`)
+    browsedNotInCart.length > 0
+      ? `\n\nProducts the user browsed but didn't add to cart (with time spent):\n${browsedNotInCart
+          .map((p) => `- ${p.name} [slug: ${p.slug}] (viewed for ${p.durationSeconds}s)`)
           .join("\n")}`
       : "";
 
@@ -49,7 +52,7 @@ export async function POST(req: Request) {
       message: z
         .string()
         .describe(
-          "A short, witty, fun message (1-2 sentences) about their cart. Be playful and developer-themed.",
+          "ONE sentence max. Witty, casual, developer-themed. If user browsed a product, nudge about it naturally. Example: 'I saw you checking out the tumbler — ready to ship it?' Do NOT describe or sell the other suggestions. No exclamation marks.",
         ),
       suggestions: z
         .array(
@@ -57,25 +60,14 @@ export async function POST(req: Request) {
             productId: z.string(),
             reason: z
               .string()
-              .describe("Brief witty reason why this pairs well, under 10 words"),
+              .describe("Brief witty reason, under 10 words"),
           }),
         )
-        .describe("2-3 product suggestions that complement their cart"),
-      reminder: z
-        .object({
-          slug: z.string(),
-          message: z
-            .string()
-            .describe(
-              "Short nudge about the product they browsed, under 15 words",
-            ),
-        })
-        .nullable()
         .describe(
-          "If the user spent significant time viewing a product not in their cart, nudge them about it. Null if no relevant browsing history.",
+          "2-3 product suggestions. If the user browsed a product without buying it, that product MUST be first in this list. Then add 1-2 complementary products.",
         ),
     }),
-    prompt: `You're a witty shopping assistant for the Vercel Swag Store (developer merchandise). Generate a fun cart message, product suggestions, and optionally a browsing reminder.
+    prompt: `You're a witty shopping assistant for the Vercel Swag Store (developer merchandise).
 
 Cart contents: ${cartSummary}
 ${browsingContext}
@@ -84,10 +76,12 @@ Available products to suggest (not already in cart):
 ${catalog}
 
 Rules:
-- The message should be playful, short, and developer-themed (git puns, deploy jokes, etc.)
-- Suggest 2-3 products that genuinely complement what's in the cart
-- If browsing history shows they spent 5+ seconds on a product not in their cart, create a reminder nudge
-- Keep everything concise and fun`,
+- Message must be ONE sentence, max 15 words. Dry wit, not salesy
+- If user browsed a product, nudge about it and make it the FIRST suggestion
+- Then add 1-2 complementary products
+- Do NOT describe or sell the suggestions in the message — the cards do that
+- You CAN mention the browsed product by name since you're nudging
+- No exclamation marks. Think Vercel copywriting tone: minimal, clever, understated`,
   });
 
   const enrichedSuggestions = object.suggestions
@@ -109,7 +103,7 @@ Rules:
     .filter((s) => s !== null);
 
   return Response.json({
-    ...object,
+    message: object.message,
     suggestions: enrichedSuggestions,
   });
 }

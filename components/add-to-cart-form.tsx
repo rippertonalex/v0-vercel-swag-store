@@ -3,15 +3,9 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { Minus, Plus, ShoppingBag, Loader2 } from "lucide-react";
+import type { StockInfo } from "@/lib/api";
 import { useCart } from "@/lib/cart-context";
 import { Button } from "@/components/ui/button";
-
-interface StockInfo {
-  productId: string;
-  stock: number;
-  inStock: boolean;
-  lowStock: boolean;
-}
 
 const fetcher = (url: string) =>
   fetch(url)
