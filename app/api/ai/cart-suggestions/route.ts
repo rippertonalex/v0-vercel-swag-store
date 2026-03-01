@@ -46,27 +46,29 @@ export async function POST(req: Request) {
           .join("\n")}`
       : "";
 
-  const { object } = await generateObject({
+  const suggestionSchema = z.object({
+    message: z
+      .string()
+      .describe(
+        "ONE sentence max. Witty, casual, developer-themed. If user browsed a product, nudge about it naturally. Example: 'I saw you checking out the tumbler — ready to ship it?' Do NOT describe or sell the other suggestions. No exclamation marks.",
+      ),
+    suggestions: z
+      .array(
+        z.object({
+          productId: z.string(),
+          reason: z
+            .string()
+            .describe("Brief witty reason, under 10 words"),
+        }),
+      )
+      .describe(
+        "2-3 product suggestions. If the user browsed a product without buying it, that product MUST be first in this list. Then add 1-2 complementary products.",
+      ),
+  });
+
+  const { object } = (await generateObject({
     model: openai("gpt-4o-mini"),
-    schema: z.object({
-      message: z
-        .string()
-        .describe(
-          "ONE sentence max. Witty, casual, developer-themed. If user browsed a product, nudge about it naturally. Example: 'I saw you checking out the tumbler — ready to ship it?' Do NOT describe or sell the other suggestions. No exclamation marks.",
-        ),
-      suggestions: z
-        .array(
-          z.object({
-            productId: z.string(),
-            reason: z
-              .string()
-              .describe("Brief witty reason, under 10 words"),
-          }),
-        )
-        .describe(
-          "2-3 product suggestions. If the user browsed a product without buying it, that product MUST be first in this list. Then add 1-2 complementary products.",
-        ),
-    }),
+    schema: suggestionSchema as any,
     prompt: `You're a witty shopping assistant for the Vercel Swag Store (developer merchandise).
 
 Cart contents: ${cartSummary}
@@ -82,10 +84,10 @@ Rules:
 - Do NOT describe or sell the suggestions in the message — the cards do that
 - You CAN mention the browsed product by name since you're nudging
 - No exclamation marks. Think Vercel copywriting tone: minimal, clever, understated`,
-  });
+  })) as { object: z.infer<typeof suggestionSchema> };
 
   const enrichedSuggestions = object.suggestions
-    .map((s) => {
+    .map((s: { productId: string; reason: string }) => {
       const product = allProducts.find((p) => p.id === s.productId);
       if (!product) return null;
       return {
@@ -100,7 +102,7 @@ Rules:
         },
       };
     })
-    .filter((s) => s !== null);
+    .filter((s: unknown) => s !== null);
 
   return Response.json({
     message: object.message,
