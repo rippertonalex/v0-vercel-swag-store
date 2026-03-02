@@ -79,10 +79,11 @@ ${catalog}
 
 Rules:
 - Message must be ONE sentence, max 15 words. Dry wit, not salesy
-- If user browsed a product, nudge about it and make it the FIRST suggestion
-- Then add 1-2 complementary products
+- NEVER reference products already in the cart as if the user is considering them — they already committed
+- If user browsed a product (listed above), nudge about THAT product and make it the FIRST suggestion
+- If no browsed products are listed, make a general witty comment about the overall cart theme
+- Then add 1-2 complementary products from the available list
 - Do NOT describe or sell the suggestions in the message — the cards do that
-- You CAN mention the browsed product by name since you're nudging
 - No exclamation marks. Think Vercel copywriting tone: minimal, clever, understated`,
   })) as { object: z.infer<typeof suggestionSchema> };
 
