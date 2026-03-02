@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Category } from "@/lib/api";
 import { useSearchPending } from "@/components/search-pending";
@@ -16,6 +17,13 @@ export function CategoryFilter({ categories }: { categories: Category[] }) {
   const searchParams = useSearchParams();
   const { startTransition } = useSearchPending();
   const currentCategory = searchParams.get("category") ?? "all";
+
+  useEffect(() => {
+    router.prefetch("/search");
+    for (const cat of categories) {
+      router.prefetch(`/search?category=${cat.slug}`);
+    }
+  }, [categories, router]);
 
   function handleChange(value: string) {
     const params = new URLSearchParams(searchParams.toString());
