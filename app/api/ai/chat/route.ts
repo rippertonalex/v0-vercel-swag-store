@@ -2,10 +2,13 @@ import { openai } from "@ai-sdk/openai";
 import {
   streamText,
   convertToModelMessages,
+  stepCountIs,
+  tool,
   type UIMessage,
 } from "ai";
+import { z } from "zod";
 import { getCachedProducts } from "@/lib/api-server";
-import { formatPrice } from "@/lib/api";
+import { formatPrice, getProductStock } from "@/lib/api";
 
 export const maxDuration = 30;
 
@@ -55,10 +58,44 @@ Guidelines:
 - Be enthusiastic but not pushy
 - Always use {{product:SLUG}} format, never markdown links or bold product names
 
+You also have access to tools:
+- checkStock: Check real-time stock availability. Use this when the user asks if something is in stock, how many are left, or about availability. Stock levels are dynamic and change frequently, so always check rather than guessing.
+- addToCart: Add a product to the user's cart. Use this when the user explicitly asks to add something. Always confirm what you're adding and the quantity. Default to quantity 1 unless the user specifies otherwise. IMPORTANT: Always call checkStock before addToCart to verify the item is available. If it's out of stock, let the user know instead of adding it.
+
 Here is the complete product catalog:
 
 ${catalog}`,
     messages: await convertToModelMessages(messages),
+    stopWhen: stepCountIs(3),
+    tools: {
+      checkStock: tool({
+        description:
+          "Check real-time stock availability for a product. Use when the user asks about stock, availability, or how many are left.",
+        inputSchema: z.object({
+          productSlug: z
+            .string()
+            .describe("The product slug to check stock for"),
+        }),
+        execute: async ({ productSlug }) => {
+          try {
+            return await getProductStock(productSlug);
+          } catch {
+            return { stock: 0, inStock: false, lowStock: false, error: true };
+          }
+        },
+      }),
+      addToCart: tool({
+        description:
+          "Add a product to the user's shopping cart. Use when the user explicitly asks to add an item.",
+        inputSchema: z.object({
+          productSlug: z.string().describe("The product slug to add"),
+          quantity: z
+            .number()
+            .default(1)
+            .describe("Quantity to add, defaults to 1"),
+        }),
+      }),
+    },
   });
 
   return result.toUIMessageStreamResponse();

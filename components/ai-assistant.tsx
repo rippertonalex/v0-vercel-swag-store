@@ -1,13 +1,26 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import {
+  DefaultChatTransport,
+  lastAssistantMessageIsCompleteWithToolCalls,
+} from "ai";
 import { useState, useRef, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Send, Sparkles, Loader2, ArrowRight } from "lucide-react";
+import {
+  Send,
+  Sparkles,
+  Loader2,
+  ArrowRight,
+  Package,
+  ShoppingCart,
+  Check,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatPrice, type Product } from "@/lib/api";
+import { useCart } from "@/lib/cart-context";
 import useSWR from "swr";
 
 const transport = new DefaultChatTransport({ api: "/api/ai/chat" });
@@ -88,24 +101,90 @@ function MessageContent({
 export function AiAssistant() {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const { messages, sendMessage, status } = useChat({ transport });
+  const { addToCart } = useCart();
 
   const { data: allProducts } = useSWR("/api/products", productsFetcher);
 
   const productMap = useMemo(() => {
     const map = new Map<string, Product>();
-    allProducts?.forEach((p) => map.set(p.slug, p));
+    allProducts?.forEach((p) => {
+      map.set(p.slug, p);
+      map.set(p.id, p);
+    });
     return map;
   }, [allProducts]);
+
+  const { messages, sendMessage, status, addToolOutput } = useChat({
+    transport,
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+    onToolCall: async ({ toolCall }) => {
+      if (toolCall.toolName === "addToCart") {
+        const { productSlug, quantity } = toolCall.input as {
+          productSlug: string;
+          quantity: number;
+        };
+        const product = productMap.get(productSlug);
+        if (!product) {
+          addToolOutput({
+            tool: "addToCart",
+            toolCallId: toolCall.toolCallId,
+            output: { success: false, error: "Product not found" },
+          });
+          return;
+        }
+        try {
+          const stockRes = await fetch(`/api/stock/${product.slug}`);
+          const { stock: stockInfo } = await stockRes.json();
+          if (!stockInfo?.inStock) {
+            addToolOutput({
+              tool: "addToCart",
+              toolCallId: toolCall.toolCallId,
+              output: {
+                success: false,
+                error: `${product.name} is currently out of stock`,
+              },
+            });
+            return;
+          }
+          if (stockInfo.stock < (quantity || 1)) {
+            addToolOutput({
+              tool: "addToCart",
+              toolCallId: toolCall.toolCallId,
+              output: {
+                success: false,
+                error: `Only ${stockInfo.stock} available, but ${quantity} requested`,
+              },
+            });
+            return;
+          }
+          await addToCart(product.id, quantity || 1);
+          addToolOutput({
+            tool: "addToCart",
+            toolCallId: toolCall.toolCallId,
+            output: {
+              success: true,
+              productName: product.name,
+              quantity: quantity || 1,
+            },
+          });
+        } catch {
+          addToolOutput({
+            tool: "addToCart",
+            toolCallId: toolCall.toolCallId,
+            output: { success: false, error: "Failed to add to cart" },
+          });
+        }
+      }
+    },
+  });
 
   const isLoading = status === "streaming" || status === "submitted";
   const hasMessages = messages.length > 0;
 
   const suggestions = [
     "What's good for a developer gift?",
-    "Show me something under $25",
-    "I need a new bag for my laptop",
+    "Is the black crewneck t-shirt in stock?",
+    "Add the black desk mat to my cart",
     "What hats do you have?",
   ];
 
@@ -135,7 +214,7 @@ export function AiAssistant() {
             <div className="flex items-center gap-2 border-b border-border px-5 py-3">
               <Sparkles className="size-4 text-foreground" />
               <span className="text-sm font-medium text-foreground">
-                Shopping Assistant
+                Agentic AI Shopping Assistant
               </span>
               <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                 AI
@@ -166,6 +245,99 @@ export function AiAssistant() {
                             text={part.text}
                             productMap={productMap}
                           />
+                        );
+                      }
+                      if (part.type === "tool-checkStock") {
+                        if (part.state !== "output-available") {
+                          return (
+                            <div
+                              key={i}
+                              className="flex items-center gap-2 py-1 text-xs text-muted-foreground"
+                            >
+                              <Loader2 className="size-3 animate-spin" />
+                              Checking stock...
+                            </div>
+                          );
+                        }
+                        const result = part.output as {
+                          stock: number;
+                          inStock: boolean;
+                          lowStock: boolean;
+                          error?: boolean;
+                        };
+                        if (result.error) {
+                          return (
+                            <div
+                              key={i}
+                              className="flex items-center gap-1.5 rounded-md bg-red-500/10 px-2 py-1 text-xs text-red-600 dark:text-red-400"
+                            >
+                              <AlertCircle className="size-3" />
+                              Unable to check stock
+                            </div>
+                          );
+                        }
+                        return (
+                          <div
+                            key={i}
+                            className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs ${
+                              result.inStock
+                                ? result.lowStock
+                                  ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
+                                  : "bg-green-500/10 text-green-600 dark:text-green-400"
+                                : "bg-red-500/10 text-red-600 dark:text-red-400"
+                            }`}
+                          >
+                            <Package className="size-3" />
+                            {result.inStock
+                              ? result.lowStock
+                                ? `Low stock — ${result.stock} left`
+                                : `In stock — ${result.stock} available`
+                              : "Out of stock"}
+                          </div>
+                        );
+                      }
+                      if (part.type === "tool-addToCart") {
+                        if (part.state !== "output-available") {
+                          return (
+                            <div
+                              key={i}
+                              className="flex items-center gap-2 py-1 text-xs text-muted-foreground"
+                            >
+                              <Loader2 className="size-3 animate-spin" />
+                              Adding to cart...
+                            </div>
+                          );
+                        }
+                        const result = part.output as {
+                          success: boolean;
+                          productName?: string;
+                          quantity?: number;
+                          error?: string;
+                        };
+                        if (!result.success) {
+                          return (
+                            <div
+                              key={i}
+                              className="flex items-center gap-1.5 rounded-md bg-red-500/10 px-2 py-1 text-xs text-red-600 dark:text-red-400"
+                            >
+                              <AlertCircle className="size-3" />
+                              {result.error || "Failed to add to cart"}
+                            </div>
+                          );
+                        }
+                        return (
+                          <div
+                            key={i}
+                            className="flex items-center gap-1.5 rounded-md bg-green-500/10 px-2 py-1 text-xs text-green-600 dark:text-green-400"
+                          >
+                            <ShoppingCart className="size-3" />
+                            <Check className="size-3" />
+                            Added{" "}
+                            {result.quantity && result.quantity > 1
+                              ? `${result.quantity}x `
+                              : ""}
+                            to cart
+                          </div>
                         );
                       }
                       return null;
