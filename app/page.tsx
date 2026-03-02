@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  void getCachedProducts({ limit: 20 });
+  void getCachedProducts({ limit: 100 });
   void getCachedCategories();
 
   return (

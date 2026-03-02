@@ -1,4 +1,5 @@
-import { getCachedProducts } from "@/lib/api-server";
+import { cacheLife } from "next/cache";
+import { getProducts } from "@/lib/api";
 import type { Product, PaginationMeta } from "@/lib/api";
 import { ProductCard } from "@/components/product-card";
 import { PackageOpen } from "lucide-react";
@@ -10,13 +11,16 @@ export async function SearchResults({
   query?: string;
   category?: string;
 }) {
+  "use cache";
+  cacheLife("hours");
+
   let products: Product[] = [];
   let pagination: PaginationMeta | null = null;
 
   try {
-    const res = await getCachedProducts({
-      search: query || undefined,
-      category: category || undefined,
+    const res = await getProducts({
+      ...(query && { search: query }),
+      ...(category && { category }),
       limit: query ? 5 : 20,
     });
     products = res.data;

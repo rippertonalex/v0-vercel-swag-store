@@ -2,8 +2,15 @@ export async function onRequestError() {
   // Required export — intentionally empty
 }
 
-// Runs once on server boot, before any user request.
-// Pre-warms the entire "use cache" layer so every first visit is a cache hit.
+async function warmInBatches(
+  tasks: (() => Promise<unknown>)[],
+  concurrency = 6,
+) {
+  for (let i = 0; i < tasks.length; i += concurrency) {
+    await Promise.allSettled(tasks.slice(i, i + concurrency).map((t) => t()));
+  }
+}
+
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     const {
@@ -15,26 +22,39 @@ export async function register() {
     } = await import("@/lib/api-server");
 
     try {
-      const [allProducts, , categories] = await Promise.all([
+      const results = await Promise.allSettled([
         getCachedProducts({ limit: 100 }),
+        getCachedProducts({ limit: 20 }),
         getCachedFeaturedProducts(),
         getCachedCategories(),
         getCachedActivePromotion(),
       ]);
 
-      await Promise.all([
-        // Pre-warm all category filter results
-        ...categories.map((cat) =>
-          getCachedProducts({ category: cat.slug, limit: 20 }),
-        ),
-        // Pre-warm individual product caches by both slug and ID
-        ...allProducts.data.flatMap((p) => [
-          getCachedProduct(p.slug),
-          getCachedProduct(p.id),
-        ]),
-      ]);
+      const allProducts =
+        results[0].status === "fulfilled" ? results[0].value : null;
+      const categories =
+        results[3].status === "fulfilled" ? results[3].value : null;
+
+      const tasks: (() => Promise<unknown>)[] = [];
+
+      if (categories) {
+        for (const cat of categories) {
+          tasks.push(() =>
+            getCachedProducts({ category: cat.slug, limit: 20 }),
+          );
+        }
+      }
+
+      if (allProducts) {
+        for (const p of allProducts.data) {
+          tasks.push(() => getCachedProduct(p.slug));
+          tasks.push(() => getCachedProduct(p.id));
+        }
+      }
+
+      await warmInBatches(tasks);
     } catch {
-      // Best-effort cache warming — don't block server start
+      // Best-effort — don't block server start
     }
   }
 }

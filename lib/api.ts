@@ -96,6 +96,7 @@ async function apiFetch<T>(
       ...headers(),
       ...(opts?.headers || {}),
     },
+    next: { revalidate: 3600 },
   });
   if (!res.ok) {
     const err = await res.json().catch(() => null);
@@ -139,8 +140,14 @@ export async function getProduct(idOrSlug: string): Promise<Product> {
 }
 
 export async function getProductStock(idOrSlug: string): Promise<StockInfo> {
-  const res = await apiFetch<StockInfo>(`/products/${idOrSlug}/stock`);
-  return res.data;
+  // Stock is intentionally dynamic -- bypass the default fetch cache
+  const res = await fetch(`${API_BASE}/products/${idOrSlug}/stock`, {
+    headers: headers(),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Failed to fetch stock");
+  const body: { success: boolean; data: StockInfo } = await res.json();
+  return body.data;
 }
 
 // --- Category APIs ---

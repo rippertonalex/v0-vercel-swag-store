@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { getCachedCategories, getCachedProducts } from "@/lib/api-server";
+import { cacheLife } from "next/cache";
+import { getCategories } from "@/lib/api";
+import { getCachedProducts } from "@/lib/api-server";
 import { SearchInput } from "@/components/search-input";
 import { CategoryFilter } from "@/components/category-filter";
 import { SearchResults } from "@/components/search-results";
@@ -39,8 +41,10 @@ function SearchResultsSkeleton() {
   );
 }
 
-async function CategoriesFilter() {
-  const categories = await getCachedCategories();
+async function CachedCategoriesFilter() {
+  "use cache";
+  cacheLife("days");
+  const categories = await getCategories();
   return <CategoryFilter categories={categories} />;
 }
 
@@ -73,7 +77,7 @@ export default async function SearchPage({
             <SearchInput />
           </div>
           <Suspense fallback={<Skeleton className="h-10 w-full sm:w-48" />}>
-            <CategoriesFilter />
+            <CachedCategoriesFilter />
           </Suspense>
         </div>
 
@@ -81,9 +85,11 @@ export default async function SearchPage({
           <SearchResults query={q} category={category} />
         </Suspense>
 
-        <Suspense>
-          <AiSearchSection />
-        </Suspense>
+        {q && (
+          <Suspense>
+            <AiSearchSection />
+          </Suspense>
+        )}
       </SearchPendingProvider>
     </div>
   );
