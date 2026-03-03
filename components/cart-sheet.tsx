@@ -30,7 +30,7 @@ export function CartSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex w-full flex-col sm:max-w-md">
+      <SheetContent className="flex w-full flex-col overflow-hidden sm:max-w-md">
         <SheetHeader>
           <SheetTitle>Your Cart</SheetTitle>
           <SheetDescription>
@@ -42,7 +42,7 @@ export function CartSheet({
 
         {items.length > 0 ? (
           <>
-            <ScrollArea className="flex-1 px-4">
+            <ScrollArea className="min-h-0 flex-1 px-4">
               <div className="flex flex-col gap-4 pb-4">
                 {items.map((item) => (
                   <div key={item.productId} className="flex gap-3">
