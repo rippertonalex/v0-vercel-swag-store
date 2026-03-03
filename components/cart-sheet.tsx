@@ -123,9 +123,8 @@ export function CartSheet({
                   </div>
                 ))}
               </div>
+              <CartSuggestions onNavigate={() => onOpenChange(false)} />
             </ScrollArea>
-
-            <CartSuggestions onNavigate={() => onOpenChange(false)} />
 
             <Separator />
 
