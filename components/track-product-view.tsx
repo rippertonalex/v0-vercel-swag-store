@@ -14,7 +14,16 @@ export function TrackProductView({
 
   useEffect(() => {
     trackView(slug, name);
-    return () => endView(slug);
+
+    const interval = setInterval(() => {
+      endView(slug);
+      trackView(slug, name);
+    }, 3000);
+
+    return () => {
+      clearInterval(interval);
+      endView(slug);
+    };
   }, [slug, name, trackView, endView]);
 
   return null;
