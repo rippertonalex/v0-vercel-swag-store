@@ -86,7 +86,7 @@ export default async function SearchPage({
         </Suspense>
 
         {q && (
-          <Suspense>
+          <Suspense fallback={null}>
             <AiSearchSection />
           </Suspense>
         )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import useSWR from "swr";
 import { Minus, Plus, ShoppingBag, Loader2 } from "lucide-react";
 import type { StockInfo } from "@/lib/api";
@@ -22,6 +22,13 @@ export function AddToCartForm({
   const { addToCart, isPending } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const addedTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  useEffect(() => {
+    return () => {
+      if (addedTimerRef.current) clearTimeout(addedTimerRef.current);
+    };
+  }, []);
 
   const { data: stock } = useSWR<StockInfo | null>(
     `/api/stock/${productSlug}`,
@@ -35,7 +42,8 @@ export function AddToCartForm({
     try {
       await addToCart(productId, quantity);
       setAdded(true);
-      setTimeout(() => setAdded(false), 2000);
+      if (addedTimerRef.current) clearTimeout(addedTimerRef.current);
+      addedTimerRef.current = setTimeout(() => setAdded(false), 2000);
     } catch {
       // Error toast is handled by CartProvider
     }

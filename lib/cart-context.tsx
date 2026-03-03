@@ -28,10 +28,12 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-const fetcher = (url: string) =>
-  fetch(url)
-    .then((res) => res.json())
-    .then((data) => data.cart as Cart | null);
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const data = await res.json();
+  return (data.cart as Cart) ?? null;
+};
 
 export function useCart() {
   const ctx = useContext(CartContext);

@@ -1,5 +1,12 @@
-const API_BASE = process.env.API_BASE_URL!;
-const BYPASS_TOKEN = process.env.VERCEL_PROTECTION_BYPASS_TOKEN!;
+if (!process.env.API_BASE_URL) {
+  throw new Error("Missing required env var: API_BASE_URL");
+}
+if (!process.env.VERCEL_PROTECTION_BYPASS_TOKEN) {
+  throw new Error("Missing required env var: VERCEL_PROTECTION_BYPASS_TOKEN");
+}
+
+const API_BASE = process.env.API_BASE_URL;
+const BYPASS_TOKEN = process.env.VERCEL_PROTECTION_BYPASS_TOKEN;
 
 // --- Types ---
 

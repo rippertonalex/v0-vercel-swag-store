@@ -47,9 +47,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <head>
-        <meta name="generator" content="vswag-cert-v3" />
-      </head>
       <body className="font-sans antialiased">
         <Suspense>
           <BrowsingHistoryProvider>

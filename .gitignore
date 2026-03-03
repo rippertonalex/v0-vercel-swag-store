@@ -8,6 +8,7 @@ out/
 tsconfig.tsbuildinfo
 
 # Environment
+.env
 .env*.local
 
 # Testing

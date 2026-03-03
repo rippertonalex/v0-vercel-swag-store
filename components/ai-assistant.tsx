@@ -241,7 +241,7 @@ export function AiAssistant() {
                       if (part.type === "text") {
                         return (
                           <MessageContent
-                            key={i}
+                            key={`${message.id}-${i}`}
                             text={part.text}
                             productMap={productMap}
                           />
@@ -251,7 +251,7 @@ export function AiAssistant() {
                         if (part.state !== "output-available") {
                           return (
                             <div
-                              key={i}
+                              key={`${message.id}-${i}`}
                               className="flex items-center gap-2 py-1 text-xs text-muted-foreground"
                             >
                               <Loader2 className="size-3 animate-spin" />
@@ -268,7 +268,7 @@ export function AiAssistant() {
                         if (result.error) {
                           return (
                             <div
-                              key={i}
+                              key={`${message.id}-${i}`}
                               className="flex items-center gap-1.5 rounded-md bg-red-500/10 px-2 py-1 text-xs text-red-600 dark:text-red-400"
                             >
                               <AlertCircle className="size-3" />
@@ -278,7 +278,7 @@ export function AiAssistant() {
                         }
                         return (
                           <div
-                            key={i}
+                            key={`${message.id}-${i}`}
                             className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs ${
                               result.inStock
                                 ? result.lowStock
@@ -300,7 +300,7 @@ export function AiAssistant() {
                         if (part.state !== "output-available") {
                           return (
                             <div
-                              key={i}
+                              key={`${message.id}-${i}`}
                               className="flex items-center gap-2 py-1 text-xs text-muted-foreground"
                             >
                               <Loader2 className="size-3 animate-spin" />
@@ -317,7 +317,7 @@ export function AiAssistant() {
                         if (!result.success) {
                           return (
                             <div
-                              key={i}
+                              key={`${message.id}-${i}`}
                               className="flex items-center gap-1.5 rounded-md bg-red-500/10 px-2 py-1 text-xs text-red-600 dark:text-red-400"
                             >
                               <AlertCircle className="size-3" />
@@ -327,7 +327,7 @@ export function AiAssistant() {
                         }
                         return (
                           <div
-                            key={i}
+                            key={`${message.id}-${i}`}
                             className="flex items-center gap-1.5 rounded-md bg-green-500/10 px-2 py-1 text-xs text-green-600 dark:text-green-400"
                           >
                             <ShoppingCart className="size-3" />
@@ -365,7 +365,8 @@ export function AiAssistant() {
                 <button
                   key={text}
                   onClick={() => handleSuggestionClick(text)}
-                  className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+                  disabled={isLoading}
+                  className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
                 >
                   {text}
                 </button>
