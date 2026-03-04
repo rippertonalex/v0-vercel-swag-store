@@ -6,9 +6,6 @@ export function Hero() {
   return (
     <section className="relative overflow-hidden border-b border-border bg-background">
       <div className="mx-auto flex max-w-7xl flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-24 lg:px-8 lg:py-32">
-        <span className="mb-4 inline-flex items-center rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
-          Official Vercel Merchandise
-        </span>
         <h1 className="max-w-3xl text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
           Ship it. Wear it. Love it.
         </h1>
