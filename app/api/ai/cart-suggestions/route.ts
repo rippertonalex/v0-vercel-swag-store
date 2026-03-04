@@ -68,7 +68,7 @@ export async function POST(req: Request) {
 
   const { object } = (await generateObject({
     model: openai("gpt-4o-mini"),
-    schema: suggestionSchema as any,
+    schema: suggestionSchema,
     prompt: `You're a witty shopping assistant for the Vercel Swag Store (developer merchandise).
 
 Cart contents: ${cartSummary}
