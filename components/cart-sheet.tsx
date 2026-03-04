@@ -76,11 +76,11 @@ export function CartSheet({
                             variant="outline"
                             size="icon"
                             className="size-7"
-                            disabled={isPending}
+                            disabled={isPending || item.quantity <= 1}
                             onClick={() =>
                               updateQuantity(
                                 item.productId,
-                                Math.max(1, item.quantity - 1)
+                                item.quantity - 1
                               )
                             }
                             aria-label="Decrease quantity"

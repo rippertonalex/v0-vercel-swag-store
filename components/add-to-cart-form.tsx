@@ -19,9 +19,10 @@ export function AddToCartForm({
   productId: string;
   productSlug: string;
 }) {
-  const { addToCart, isPending } = useCart();
+  const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const addedTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
@@ -39,6 +40,8 @@ export function AddToCartForm({
   const outOfStock = stock != null && !stock.inStock;
 
   async function handleAddToCart() {
+    if (submitting || added) return;
+    setSubmitting(true);
     try {
       await addToCart(productId, quantity);
       setAdded(true);
@@ -46,6 +49,8 @@ export function AddToCartForm({
       addedTimerRef.current = setTimeout(() => setAdded(false), 2000);
     } catch {
       // Error toast is handled by CartProvider
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -84,9 +89,9 @@ export function AddToCartForm({
         size="lg"
         className="w-full"
         onClick={handleAddToCart}
-        disabled={outOfStock || isPending || stock == null}
+        disabled={outOfStock || submitting || added || stock == null}
       >
-        {isPending ? (
+        {submitting ? (
           <>
             <Loader2 className="size-4 animate-spin" />
             Adding...
