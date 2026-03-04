@@ -182,7 +182,7 @@ export function AiAssistant() {
   const hasMessages = messages.length > 0;
 
   const suggestions = [
-    "What's good for a developer gift?",
+    "What do you have under $25?",
     "Is the black crewneck t-shirt in stock?",
     "Add the black desk mat to my cart",
     "What hats do you have?",
