@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { openai } from "@ai-sdk/openai";
-import { generateObject } from "ai";
+import { generateText, Output } from "ai";
 import { z } from "zod";
 import { getCachedProducts } from "@/lib/api-server";
 import { formatPrice, type Product } from "@/lib/api";
@@ -22,12 +22,14 @@ async function getSimilarProductIds(product: Product): Promise<string[]> {
     )
     .join("\n");
 
-  const { object } = await generateObject({
+  const { output: object } = await generateText({
     model: openai("gpt-4o-mini"),
-    schema: z.object({
-      productIds: z
-        .array(z.string())
-        .describe("IDs of the 4 most similar products"),
+    output: Output.object({
+      schema: z.object({
+        productIds: z
+          .array(z.string())
+          .describe("IDs of the 4 most similar products"),
+      }),
     }),
     prompt: `Given this product, find the 4 most similar products from the catalog based on category, use case, style, and description.
 

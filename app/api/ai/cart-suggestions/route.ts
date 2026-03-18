@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { generateObject } from "ai";
+import { generateText, Output } from "ai";
 import { z } from "zod";
 import { getCachedProducts } from "@/lib/api-server";
 import { formatPrice } from "@/lib/api";
@@ -66,9 +66,9 @@ export async function POST(req: Request) {
       ),
   });
 
-  const { object } = (await generateObject({
+  const { output: object } = await generateText({
     model: openai("gpt-4o-mini"),
-    schema: suggestionSchema,
+    output: Output.object({ schema: suggestionSchema }),
     prompt: `You're a witty shopping assistant for the Vercel Swag Store (developer merchandise).
 
 Cart contents: ${cartSummary}
@@ -85,7 +85,7 @@ Rules:
 - Then add 1-2 complementary products from the available list
 - Do NOT describe or sell the suggestions in the message — the cards do that
 - No exclamation marks. Think Vercel copywriting tone: minimal, clever, understated`,
-  })) as { object: z.infer<typeof suggestionSchema> };
+  });
 
   const enrichedSuggestions = object.suggestions
     .map((s: { productId: string; reason: string }) => {

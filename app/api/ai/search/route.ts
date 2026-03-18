@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { generateObject } from "ai";
+import { generateText, Output } from "ai";
 import { z } from "zod";
 import { getCachedProducts } from "@/lib/api-server";
 import { formatPrice } from "@/lib/api";
@@ -27,15 +27,17 @@ export async function POST(req: Request) {
     )
     .join("\n");
 
-  const { object } = await generateObject({
+  const { output: object } = await generateText({
     model: openai("gpt-4o-mini"),
-    schema: z.object({
-      productIds: z
-        .array(z.string())
-        .describe("Array of product IDs that match the query, best matches first"),
-      reasoning: z
-        .string()
-        .describe("Brief explanation of why these products match"),
+    output: Output.object({
+      schema: z.object({
+        productIds: z
+          .array(z.string())
+          .describe("Array of product IDs that match the query, best matches first"),
+        reasoning: z
+          .string()
+          .describe("Brief explanation of why these products match"),
+      }),
     }),
     prompt: `You are a product search engine for the Vercel Swag Store. Given a user's search query, return the product IDs that best match their intent. Consider semantic meaning, not just keyword matching.
 
